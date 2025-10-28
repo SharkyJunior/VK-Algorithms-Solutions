@@ -7,18 +7,18 @@
 #include <vector>
 #include <algorithm>
 
-struct Line {
+struct Pair {
     int left, right;
 
-    Line() : left(0), right(0) {};
+    Pair() : left(0), right(0) {};
 
-    Line(int left, int right) : left(left), right(right) {}
+    Pair(int left, int right) : left(left), right(right) {}
 };
 
-bool compare_lines(const Line& line1, const Line& line2) {
-    if (line1.left != line2.left)
-        return line1.left < line2.left;
-    else return line1.right < line2.right;
+bool compare_lines(const Pair& pair1, const Pair& pair2) {
+    if (pair1.left != pair2.left)
+        return pair1.left < pair2.left;
+    else return pair1.right < pair2.right;
 }
 
 template <typename T, bool (*cmp)(const T&, const T&)>
@@ -62,44 +62,39 @@ int main() {
     int line_count;
     std::cin >> line_count;
 
-    auto lines = std::vector<Line>();
+    auto pairs = std::vector<Pair>();
 
     for (int i = 0; i < line_count; ++i) {
         int left, right;
         std::cin >> left >> right;
-        lines.push_back(Line(left, right));
+        pairs.push_back(Pair(left, right));
     }
 
-    merge_sort<Line, compare_lines>(lines, 0, lines.size());
-
-    for (const auto& line: lines) {
-        std::cout << line.left << ' ' << line.right << std::endl;
+    std::vector<Pair> events;
+    for (auto& pair : pairs) {
+        events.push_back({pair.left, 1});   
+        events.push_back({pair.right, -1}); 
     }
-
-    // int total_length = 0;
-    // int active = 0;
-    // int prev_end = INT32_MIN;
-    // int prev_start = -1;
-
-    // for (const auto& line : lines) {
-    //     if (line.left > prev_end) {
-    //         if (active == 1) {
-    //             total_length += (line.left - prev_start);
-    //         }
-    //         active = 1;
-    //     }
-    //     if (line.left < prev_end) {
-    //         active++;
-    //     }
-    //     if (line.right )
-    //     prev_start = line.left;
-    //     prev_end = line.right;
-    // }
-    // if (active == 1) {
-    //     total_length += (prev_end - prev_start);
-    // }
-
-    // std::cout << total_length << std::endl;
+    
+    merge_sort<Pair, compare_lines>(events, 0, events.size() - 1);
+    
+    int coverage = 0;
+    int last_pos = events[0].left;
+    int total_length = 0;
+    
+    for (auto& event : events) {
+        int pos = event.left;
+        int type = event.right;
+        
+        if (coverage == 1) {
+            total_length += (pos - last_pos);
+        }
+        
+        coverage += type;
+        last_pos = pos;
+    }
+    
+    std::cout << total_length << std::endl;
 
     return 0;
 }
